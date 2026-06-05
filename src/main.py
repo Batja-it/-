@@ -29,3 +29,55 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Добавляем в main.py новую функцию и модифицируем main()
+
+from src.optimizer import optimize_meal
+
+def main():
+    setup_logging()
+    
+    print("\n" + "=" * 50)
+    print("   ДОБРО ПОЖАЛОВАТЬ В КАЛЬКУЛЯТОР СТОИМОСТИ ОБЕДА")
+    print("=" * 50)
+    
+    while True:
+        # Выбор режима работы
+        print("\nВыберите режим:")
+        print("  1. Ручной выбор блюд")
+        print("  2. Оптимизация под бюджет")
+        
+        mode = input("Ваш выбор (1/2): ").strip()
+        
+        if mode == "2":
+            # Режим оптимизации
+            menu = show_menu()
+            budget = float(input("\nВведите ваш бюджет (руб.): "))
+            hour = get_time()
+            has_card = has_discount_card()
+            
+            result = optimize_meal(menu, budget, has_card, hour)
+            
+            if result and result["items"]:
+                print("\n" + "=" * 40)
+                print("     ОПТИМАЛЬНЫЙ НАБОР БЛЮД")
+                print("=" * 40)
+                for name, info in result["items"].items():
+                    print(f"  • {name}: {info['count']} шт. x {info['price']} руб.")
+                print("-" * 40)
+                print(f"  Итоговая стоимость: {result['cost']:.2f} руб.")
+                print(f"  Отклонение от бюджета: {abs(result['cost'] - budget):.2f} руб.")
+                print("=" * 40)
+                
+                # Логируем результат оптимизации
+                log_calculation(result["items"], 
+                               sum(v['price']*v['count'] for v in result["items"].values()),
+                               0, 0, result["cost"])
+            else:
+                print("\nНе удалось подобрать набор блюд под ваш бюджет.")
+        else:
+            # Ручной режим (код из предыдущей версии)
+            menu = show_menu()
+            selected_items = get_user_choice(menu)
+            
+           

@@ -1,48 +1,26 @@
-"""Главный модуль калькулятора обеда"""
+"""
+Главный модуль программы.
+"""
 
-from input_output import input_dishes, input_percentage, print_receipt
-from calculator import calculate_subtotal, apply_discount_and_markup
-from discount_service import max_discount_limit
-from logger import log_calculation
-
-def main():
-    print("=== Калькулятор стоимости обеда ===")
-    
-    dishes = input_dishes()
-    if not dishes:
-        print("Обед не выбран. Завершение.")
-        return
-    
-    subtotal = calculate_subtotal(dishes)
-    
-    discount = input_percentage("Скидка по карте (%): ")
-    discount = max_discount_limit(discount)  # применение ограничения
-    
-    markup = input_percentage("Наценка за обслуживание (%): ")
-    
-    after_discount, discount_amount, markup_amount, total = apply_discount_and_markup(
-        subtotal, discount, markup
-    )
-    
-    print_receipt(dishes, subtotal, discount_amount, after_discount, markup_amount, total)
-    log_calculation(dishes, subtotal, discount, markup, total)
-
-if __name__ == "__main__":
-    main()
-
-# Добавляем в main.py новую функцию и модифицируем main()
-
+from src.input_output import (
+    show_menu, get_user_choice, get_time, 
+    has_discount_card, display_result
+)
+from src.calculator import calculate_base_cost, validate_order
+from src.discounts import apply_discounts_and_surcharges
+from src.logger import setup_logging, log_calculation
 from src.optimizer import optimize_meal
 
+
 def main():
+    """Основная функция программы"""
     setup_logging()
     
     print("\n" + "=" * 50)
-    print("   ДОБРО ПОЖАЛОВАТЬ В КАЛЬКУЛЯТОР СТОИМОСТИ ОБЕДА")
+    print("   КАЛЬКУЛЯТОР СТОИМОСТИ ОБЕДА")
     print("=" * 50)
     
     while True:
-        # Выбор режима работы
         print("\nВыберите режим:")
         print("  1. Ручной выбор блюд")
         print("  2. Оптимизация под бюджет")
@@ -52,32 +30,59 @@ def main():
         if mode == "2":
             # Режим оптимизации
             menu = show_menu()
-            budget = float(input("\nВведите ваш бюджет (руб.): "))
+            
+            try:
+                budget = float(input("\nВаш бюджет (руб.): "))
+            except ValueError:
+                print("Ошибка! Введите число.")
+                continue
+            
             hour = get_time()
             has_card = has_discount_card()
             
             result = optimize_meal(menu, budget, has_card, hour)
             
-            if result and result["items"]:
+            if result and result.get("items"):
                 print("\n" + "=" * 40)
-                print("     ОПТИМАЛЬНЫЙ НАБОР БЛЮД")
+                print("     ОПТИМАЛЬНЫЙ НАБОР")
                 print("=" * 40)
                 for name, info in result["items"].items():
                     print(f"  • {name}: {info['count']} шт. x {info['price']} руб.")
                 print("-" * 40)
-                print(f"  Итоговая стоимость: {result['cost']:.2f} руб.")
-                print(f"  Отклонение от бюджета: {abs(result['cost'] - budget):.2f} руб.")
+                print(f"  Итог: {result['cost']:.2f} руб.")
+                print(f"  Отклонение: {abs(result['cost'] - budget):.2f} руб.")
                 print("=" * 40)
                 
-                # Логируем результат оптимизации
-                log_calculation(result["items"], 
-                               sum(v['price']*v['count'] for v in result["items"].values()),
-                               0, 0, result["cost"])
+                base_sum = sum(v['price'] * v['count'] for v in result["items"].values())
+                log_calculation(result["items"], base_sum, 0, 0, result["cost"])
             else:
-                print("\nНе удалось подобрать набор блюд под ваш бюджет.")
+                print("\nНе удалось подобрать набор.")
+        
         else:
-            # Ручной режим (код из предыдущей версии)
+            # Ручной режим
             menu = show_menu()
             selected_items = get_user_choice(menu)
             
-           
+            if not validate_order(selected_items):
+                print("\nОшибка: Вы не выбрали ни одного блюда!")
+                continue
+            
+            hour = get_time()
+            has_card = has_discount_card()
+            
+            base_cost, details = calculate_base_cost(selected_items)
+            final_cost, discount, surcharge = apply_discounts_and_surcharges(
+                base_cost, has_card, hour
+            )
+            
+            display_result(details, base_cost, discount, surcharge, final_cost)
+            log_calculation(selected_items, base_cost, discount, surcharge, final_cost)
+        
+        again = input("\nРассчитать ещё? (д/н): ").strip().lower()
+        if again not in ['д', 'y', 'да']:
+            print("\nДо свидания!")
+            break
+
+
+if __name__ == "__main__":
+    main()

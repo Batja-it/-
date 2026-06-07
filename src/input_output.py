@@ -1,45 +1,86 @@
-"""Модуль ввода/вывода данных обеда"""
+"""
+Модуль ввода/вывода данных пользователя.
+"""
 
-def input_dishes():
-    """
-    Ввод блюд от пользователя.
-    Возвращает список кортежей: [(название, цена, количество), ...]
-    """
-    dishes = []
-    print("Введите блюда (название, цена, количество). Для завершения введите 'стоп'")
+def show_menu():
+    """Отображает меню столовой"""
+    menu = {
+        "1": {"name": "Цезарь", "price": 150},
+        "2": {"name": "Оливье", "price": 130},
+        "3": {"name": "Борщ", "price": 120},
+        "4": {"name": "Солянка", "price": 140},
+        "5": {"name": "Гречка с котлетой", "price": 180},
+        "6": {"name": "Плов", "price": 190},
+        "7": {"name": "Макароны с сыром", "price": 150},
+        "8": {"name": "Компот", "price": 50},
+        "9": {"name": "Чай", "price": 40},
+        "10": {"name": "Кофе", "price": 80}
+    }
+    
+    print("\n" + "=" * 40)
+    print("          МЕНЮ СТОЛОВОЙ")
+    print("=" * 40)
+    for key, item in menu.items():
+        print(f"  {key}. {item['name']:15} {item['price']:>5} руб.")
+    print("=" * 40)
+    
+    return menu
+
+
+def get_user_choice(menu):
+    """Запрашивает выбор блюд"""
+    selected = {}
+    
+    for key, item in menu.items():
+        answer = input(f"\nДобавить '{item['name']}'? (д/н): ").strip().lower()
+        
+        if answer in ['д', 'y']:
+            while True:
+                try:
+                    count = int(input("  Количество порций (1-5): "))
+                    if 1 <= count <= 5:
+                        break
+                    print("Ошибка! Введите число от 1 до 5")
+                except ValueError:
+                    print("Ошибка! Введите целое число")
+            
+            selected[item['name']] = {
+                "price": item['price'],
+                "count": count
+            }
+    
+    return selected
+
+
+def get_time():
+    """Запрашивает час посещения"""
     while True:
-        name = input("Название блюда: ").strip()
-        if name.lower() == 'стоп':
-            break
         try:
-            price = float(input("Цена: "))
-            quantity = int(input("Количество: "))
-            if price < 0 or quantity <= 0:
-                print("Цена должна быть ≥0, количество >0")
-                continue
-            dishes.append((name, price, quantity))
+            hour = int(input("\nВведите час посещения (8-20): "))
+            if 8 <= hour <= 20:
+                return hour
+            print("Ошибка! Час должен быть от 8 до 20")
         except ValueError:
-            print("Ошибка: введите число")
-    return dishes
+            print("Ошибка! Введите целое число")
 
-def input_percentage(prompt):
-    """Ввод процента (скидки или наценки)"""
-    while True:
-        try:
-            val = float(input(prompt))
-            if 0 <= val <= 100:
-                return val
-            print("Введите число от 0 до 100")
-        except ValueError:
-            print("Ошибка: введите число")
 
-def print_receipt(dishes, subtotal, discount_amount, after_discount, markup_amount, total):
-    """Вывод чека"""
-    print("\n--- ЧЕК ---")
-    for name, price, qty in dishes:
-        print(f"{name} x{qty} = {price * qty:.2f} ₽")
-    print(f"Сумма: {subtotal:.2f} ₽")
-    print(f"Скидка: -{discount_amount:.2f} ₽")
-    print(f"Сумма после скидки: {after_discount:.2f} ₽")
-    print(f"Наценка: +{markup_amount:.2f} ₽")
-    print(f"ИТОГО: {total:.2f} ₽")
+def has_discount_card():
+    """Запрашивает наличие скидочной карты"""
+    answer = input("\nЕсть скидочная карта? (д/н): ").strip().lower()
+    return answer in ['д', 'y']
+
+
+def display_result(details, base_cost, discount, surcharge, final_cost):
+    """Отображает результат расчёта"""
+    print("\n" + "=" * 40)
+    print("          ДЕТАЛИЗАЦИЯ ЗАКАЗА")
+    print("=" * 40)
+    for line in details:
+        print(f"  {line}")
+    print("-" * 40)
+    print(f"  Базовая стоимость: {base_cost:>20.2f} руб.")
+    print(f"  Скидка:            {discount:>20.2f} руб.")
+    print(f"  Наценка (час пик): {surcharge:>20.2f} руб.")
+    print("-" * 40)
+    print(f"  ИТОГО К ОПЛАТЕ:    {final_cost:>20.2f} руб.")
+    print("=" * 40)

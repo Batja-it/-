@@ -1,0 +1,38 @@
+# Папка с временными файлами Python (кэш)
+__pycache__/
+*.pyc
+*.pyo
+
+# Логи программы
+logs/
+*.log
+
+# Настройки PyCharm (не нужно публиковать)
+.idea/
+*.iml
+
+# Настройки VS Code
+.vscode/
+
+# Системные файлы Windows
+Thumbs.db
+Desktop.ini
+
+# Системные файлы Mac
+.DS_Store
+.AppleDouble
+
+# Виртуальное окружение (если будете использовать)
+venv/
+env/
+.venv/
+.env/
+
+# Файлы отчётов тестирования
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Файлы с секретами (если есть)
+*.env
+config.py

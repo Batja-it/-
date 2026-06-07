@@ -2,6 +2,7 @@
 Модуль ввода/вывода данных пользователя.
 """
 
+
 def show_menu():
     """Отображает меню столовой"""
     menu = {
@@ -16,24 +17,24 @@ def show_menu():
         "9": {"name": "Чай", "price": 40},
         "10": {"name": "Кофе", "price": 80}
     }
-    
+
     print("\n" + "=" * 40)
     print("          МЕНЮ СТОЛОВОЙ")
     print("=" * 40)
     for key, item in menu.items():
         print(f"  {key}. {item['name']:15} {item['price']:>5} руб.")
     print("=" * 40)
-    
+
     return menu
 
 
 def get_user_choice(menu):
     """Запрашивает выбор блюд"""
     selected = {}
-    
+
     for key, item in menu.items():
         answer = input(f"\nДобавить '{item['name']}'? (д/н): ").strip().lower()
-        
+
         if answer in ['д', 'y']:
             while True:
                 try:
@@ -43,12 +44,12 @@ def get_user_choice(menu):
                     print("Ошибка! Введите число от 1 до 5")
                 except ValueError:
                     print("Ошибка! Введите целое число")
-            
+
             selected[item['name']] = {
                 "price": item['price'],
                 "count": count
             }
-    
+
     return selected
 
 
